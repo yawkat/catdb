@@ -11,10 +11,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 import javax.annotation.PostConstruct;
+import org.springframework.stereotype.Component;
 
 /**
  * @author yawkat
  */
+@Component
 public class PermissionManager {
     private static final String DEFAULT_USER = "";
 
