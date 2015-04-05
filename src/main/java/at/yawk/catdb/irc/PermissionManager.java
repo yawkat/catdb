@@ -7,6 +7,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
@@ -20,7 +21,7 @@ import org.springframework.stereotype.Component;
 public class PermissionManager {
     private static final String DEFAULT_USER = "";
 
-    private Map<String, List<Pattern>> permissions;
+    private final Map<String, List<Pattern>> permissions = new HashMap<>();
 
     @PostConstruct
     private void load() throws IOException {
