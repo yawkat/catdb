@@ -34,22 +34,19 @@ public class IRCBot implements Listener {
 
     private List<ExtBot> bots = new ArrayList<>();
     private Executor executor;
-    private Config config;
 
     @PostConstruct
-    private void loadConfig() {
+    private void launch() {
         Path configPath = Paths.get("config.yml");
         at.yawk.config.Configuration configuration = at.yawk.config.Configuration.create();
+        Config config;
         if (Files.exists(configPath)) {
             config = configuration.load(Config.class, configPath);
         } else {
             config = new Config();
             configuration.save(config, configPath);
         }
-    }
 
-    @PostConstruct
-    private void launch() {
         for (int i = 0; i < config.getServers().size(); i++) {
             Config.Server server = config.getServers().get(i);
             Configuration.Builder<PircBotX> configBuilder = new Configuration.Builder<>();

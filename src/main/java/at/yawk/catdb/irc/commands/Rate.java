@@ -16,7 +16,7 @@ class Rate {
     @Autowired Database database;
 
     @Permission("rate")
-    @CommandHandler("\\^++")
+    @CommandHandler("\\^\\+\\+")
     public void incrementLast(Request request) {
         modify(request.getChannel().getData().getLastShownImage(), +1);
     }
@@ -28,7 +28,7 @@ class Rate {
     }
 
     @Permission("rate")
-    @CommandHandler("(\\d+)++")
+    @CommandHandler("(\\d+)\\+\\+")
     public void increment(Request request, String id) {
         modify(database.getImage(Integer.parseInt(id)), +1);
     }
