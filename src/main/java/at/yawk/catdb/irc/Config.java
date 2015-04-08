@@ -25,5 +25,7 @@ public class Config {
         String login = "kitty";
         @DescribedAs("Channels to join")
         Set<String> channels = new HashSet<>(Arrays.asList("#thinkofcat", "#cricket"));
+        @DescribedAs("Commands to run on join")
+        List<String> runOnJoin = new ArrayList<>();
     }
 }

@@ -30,6 +30,7 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class IRCBot implements Listener {
     @Autowired EventBus bus;
+    @Autowired CommandManager commandManager;
 
     private List<ExtBot> bots = new ArrayList<>();
     private Executor executor;
@@ -62,7 +63,8 @@ public class IRCBot implements Listener {
                             .setLogin(server.getLogin())
                             .setAutoNickChange(true)
                             .setSocketFactory(SSLSocketFactory.getDefault())
-                            .buildConfiguration()
+                            .buildConfiguration(),
+                    server
             );
             bot.getConfiguration().getListenerManager().addListener(this);
             log.info("Launching bot thread {}", bot);
@@ -99,14 +101,42 @@ public class IRCBot implements Listener {
     }
 
     private class ExtBot extends PircBotX {
-        public ExtBot(Configuration<? extends PircBotX> configuration) {
+        private final Config.Server serverConfig;
+
+        public ExtBot(Configuration<? extends PircBotX> configuration, Config.Server serverConfig) {
             super(configuration);
+            this.serverConfig = serverConfig;
         }
 
         // make visible
         @Override
         protected void shutdown() {
             super.shutdown();
+        }
+
+        @Override
+        protected void startLineProcessing() {
+            ChannelData cd = new ChannelData();
+            Channel channel = new Channel() {
+                @Override
+                public void send(String message) {
+                    log.info("CONSOLE: {}", message);
+                }
+
+                @Override
+                public ChannelData getData() {
+                    return cd;
+                }
+            };
+            for (String command : serverConfig.getRunOnJoin()) {
+                Request request = new Request();
+                request.setCommand(command);
+                request.setSender("*CONSOLE");
+                request.setChannel(channel);
+                request.setBot(this);
+                commandManager.handleCommand(request);
+            }
+            super.startLineProcessing();
         }
     }
 }

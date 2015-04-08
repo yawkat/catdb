@@ -3,11 +3,12 @@ package at.yawk.catdb.irc;
 import com.google.common.eventbus.Subscribe;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.function.Consumer;
-import java.util.regex.MatchResult;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.pircbotx.PircBotX;
+import org.pircbotx.User;
 import org.pircbotx.hooks.events.MessageEvent;
 import org.pircbotx.hooks.events.PrivateMessageEvent;
 import org.pircbotx.hooks.types.GenericMessageEvent;
@@ -28,42 +29,46 @@ class CommandManager {
         return event.getUser().equals(event.getBot().getUserBot());
     }
 
-    private ChannelData getChannelData(String channel) {
-        return channelDataMap.computeIfAbsent(channel, n -> new ChannelData());
+    private ChannelData getChannelData(PircBotX bot, String channel) {
+        return channelDataMap.computeIfAbsent(bot.getBotId() + "|" + channel, n -> new ChannelData());
     }
 
     @Subscribe
     public void message(MessageEvent<?> event) {
         if (isFromSelf(event)) { return; }
 
-        // handle
-        handleChannelMessage(
-                event,
-                s -> event.getChannel().send().message(event.getUser(), s),
-                getChannelData('#' + event.getChannel().getName())
+        Channel channel = new ChannelChannel(
+                getChannelData(event.getBot(), "#" + event.getChannel().getName()),
+                event.getChannel(),
+                event.getUser()
         );
+
+        // handle
+        handleChannelMessage(event, channel);
     }
 
     @Subscribe
     public void message(PrivateMessageEvent<?> event) {
         if (isFromSelf(event)) { return; }
 
-        Consumer<String> channel = s -> event.getUser().send().message(s);
-        ChannelData channelData = getChannelData(event.getUser().getNick());
+        Channel channel = new UserChannel(
+                getChannelData(event.getBot(), event.getUser().getNick()),
+                event.getUser()
+        );
 
         // "katbot, ....."
-        if (handleChannelMessage(event, channel, channelData)) { return; }
+        if (handleChannelMessage(event, channel)) { return; }
 
         // ".....", only allowed in pm
 
-        handleCommand(event.getUser().getNick(), channel, channelData, event.getMessage());
+        Request request = new Request();
+        request.setSender(event.getUser().getNick());
+        request.setChannel(channel);
+        request.setCommand(event.getMessage());
+        handleCommand(request);
     }
 
-    private boolean handleChannelMessage(
-            GenericMessageEvent<?> event,
-            Consumer<String> channel,
-            ChannelData channelData
-    ) {
+    private boolean handleChannelMessage(GenericMessageEvent<?> event, Channel channel) {
 
         // "katbot, ....."
         String ownNick = event.getBot().getUserBot().getNick();
@@ -78,44 +83,23 @@ class CommandManager {
         }
         String command = event.getMessage().substring(commandStart + 1);
 
-        handleCommand(event.getUser().getNick(), channel, channelData, command);
+        Request request = new Request();
+        request.setSender(event.getUser().getNick());
+        request.setChannel(channel);
+        request.setCommand(command);
+        handleCommand(request);
         return true;
     }
 
-    private void handleCommand(
-            String sender,
-            Consumer<String> channel,
-            ChannelData channelData,
-            String command
-    ) {
-        log.info("Received command {}", command);
+    public void handleCommand(Request request) {
+        log.info("Received command {}", request);
 
         for (Map.Entry<Pattern, Handler> entry : requestHandlers.entrySet()) {
             log.info("Attempting match with {}", entry.getKey());
-            Matcher matcher = entry.getKey().matcher(command);
+            Matcher matcher = entry.getKey().matcher(request.getCommand());
             if (matcher.matches()) {
-                Request request = new Request() {
-                    @Override
-                    public MatchResult getResult() {
-                        return matcher;
-                    }
-
-                    @Override
-                    public void sendMessage(String msg) {
-                        channel.accept(msg);
-                    }
-
-                    @Override
-                    public ChannelData getChannelData() {
-                        return channelData;
-                    }
-
-                    @Override
-                    public String getSenderNick() {
-                        return sender;
-                    }
-                };
-                if (entry.getValue().handle(request)) {
+                Request subRequest = request.withMatchResult(matcher);
+                if (entry.getValue().handle(subRequest)) {
                     break;
                 }
             }
@@ -124,5 +108,42 @@ class CommandManager {
 
     static interface Handler {
         boolean handle(Request request);
+    }
+
+    @RequiredArgsConstructor
+    private static class UserChannel implements Channel {
+        final ChannelData data;
+        final User user;
+
+        @Override
+        public void send(String message) {
+            user.send().message(message);
+        }
+
+        @Override
+        public ChannelData getData() {
+            return data;
+        }
+    }
+
+    @RequiredArgsConstructor
+    private static class ChannelChannel implements Channel {
+        final ChannelData data;
+        final org.pircbotx.Channel channel;
+        final User subject;
+
+        @Override
+        public void send(String message) {
+            if (subject == null) {
+                channel.send().message(message);
+            } else {
+                channel.send().message(subject, message);
+            }
+        }
+
+        @Override
+        public ChannelData getData() {
+            return null;
+        }
     }
 }

@@ -43,7 +43,7 @@ class CommandHandlerManager {
                     Class<?>[] parameterTypes = method.getParameterTypes();
                     CommandManager.Handler handler = req -> {
                         for (Permission permission : permissions) {
-                            if (!permissionManager.hasPermission(req.getSenderNick(), permission.value())) {
+                            if (!permissionManager.hasPermission(req.getSender(), permission.value())) {
                                 return false;
                             }
                         }
@@ -53,20 +53,20 @@ class CommandHandlerManager {
                             if (parameterType == Request.class) {
                                 ivkArgs.add(req);
                             } else if (parameterType == String.class) {
-                                ivkArgs.add(req.getResult().group(group++));
+                                ivkArgs.add(req.getMatchResult().group(group++));
                             }
                         }
                         try {
                             Object returnValue = handle.invokeWithArguments(ivkArgs);
                             if (returnValue != null) {
-                                req.sendMessage(String.valueOf(returnValue));
+                                req.getChannel().send(String.valueOf(returnValue));
                                 if (returnValue instanceof Image) {
-                                    req.getChannelData().setLastShownImage((Image) returnValue);
+                                    req.getChannel().getData().setLastShownImage((Image) returnValue);
                                 }
                             }
                         } catch (Throwable e) {
                             log.warn("Failed to execute handler", e);
-                            req.sendMessage(e.getClass().getName() + ": " + e.getMessage());
+                            req.getChannel().send(e.getClass().getName() + ": " + e.getMessage());
                         }
                         return true;
                     };
