@@ -1,6 +1,7 @@
 package at.yawk.catdb.irc;
 
 import at.yawk.catdb.db.Image;
+import com.google.common.collect.ImmutableMap;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Method;
@@ -75,9 +76,13 @@ class CommandHandlerManager {
                         if (matcher == null) {
                             return false;
                         }
-                        req = req.withMatchResult(matcher);
+                        req.setMatchResult(matcher);
                         for (Permission permission : permissions) {
-                            if (!permissionManager.hasPermission(req.getSender(), permission.value())) {
+                            if (!permissionManager.hasPermission(
+                                    req.getSender(),
+                                    permission.value(),
+                                    ImmutableMap.of("channel", req.getChannel().getName())
+                            )) {
                                 return false;
                             }
                         }

@@ -120,6 +120,11 @@ class CommandManager {
         public ChannelData getData() {
             return data;
         }
+
+        @Override
+        public String getName() {
+            return user.getNick();
+        }
     }
 
     @RequiredArgsConstructor
@@ -140,6 +145,11 @@ class CommandManager {
         @Override
         public ChannelData getData() {
             return data;
+        }
+
+        @Override
+        public String getName() {
+            return channel.getName();
         }
     }
 }

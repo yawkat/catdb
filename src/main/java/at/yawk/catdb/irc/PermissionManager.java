@@ -1,17 +1,14 @@
 package at.yawk.catdb.irc;
 
-import com.google.gson.stream.JsonReader;
-import com.google.gson.stream.JsonToken;
 import java.io.IOException;
+import java.io.Reader;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.regex.Pattern;
 import javax.annotation.PostConstruct;
+import javax.script.Invocable;
+import javax.script.ScriptEngine;
+import javax.script.ScriptEngineManager;
+import javax.script.ScriptException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -21,50 +18,30 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 public class PermissionManager {
-    private static final String DEFAULT_USER = "";
-
-    private final Map<String, List<Pattern>> permissions = new HashMap<>();
+    private ScriptEngine engine;
 
     @PostConstruct
-    private void load() throws IOException {
-        Path permissionFile = Paths.get("permissions.json");
-        try (JsonReader reader = new JsonReader(Files.newBufferedReader(permissionFile))) {
-            reader.beginObject();
-            while (reader.peek() != JsonToken.END_OBJECT) {
-                String name = reader.nextName();
-                permissions.put(name, new ArrayList<>());
-                if (reader.peek() == JsonToken.BEGIN_ARRAY) {
-                    reader.beginArray();
-                    while (reader.peek() != JsonToken.END_ARRAY) {
-                        permissions.get(name).add(Pattern.compile(reader.nextString()));
-                    }
-                    reader.endArray();
-                } else {
-                    permissions.get(name).add(Pattern.compile(reader.nextString()));
-                }
-            }
-            reader.endObject();
+    private void load() throws IOException, ScriptException {
+        engine = new ScriptEngineManager()
+                .getEngineFactories()
+                .get(0)
+                .getScriptEngine();
+        try (Reader reader = Files.newBufferedReader(Paths.get("permissions.js"))) {
+            engine.eval(reader);
         }
     }
 
-    public boolean hasPermission(String user, String permission) {
-        boolean accept = hasPermission0(user, permission);
+    public boolean hasPermission(String user, String permission, Object context) {
+        boolean accept;
+        try {
+            accept = (boolean) ((Invocable) engine).invokeFunction("hasPermission", user, permission, context);
+        } catch (ScriptException | NoSuchMethodException e) {
+            throw new RuntimeException(e);
+        }
         if (!accept) {
             log.debug("{} was declined permission {}", user, permission);
         }
         return accept;
     }
 
-    private boolean hasPermission0(String user, String permission) {
-        for (Pattern pattern : permissions.get(user)) {
-            if (pattern.matcher(permission).matches()) {
-                return true;
-            }
-        }
-        if (!user.equals(DEFAULT_USER)) {
-            return hasPermission(DEFAULT_USER, permission);
-        } else {
-            return false;
-        }
-    }
 }

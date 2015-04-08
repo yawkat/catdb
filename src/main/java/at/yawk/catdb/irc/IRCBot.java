@@ -127,6 +127,11 @@ public class IRCBot implements Listener {
                 public ChannelData getData() {
                     return cd;
                 }
+
+                @Override
+                public String getName() {
+                    return "*CONSOLE";
+                }
             };
             for (String command : serverConfig.getRunOnJoin()) {
                 Request request = new Request();
