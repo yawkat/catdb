@@ -55,11 +55,15 @@ class FileDatabase implements Database {
         }
     }
 
+    private static Image copy(Image image) {
+        return image.clone();
+    }
+
     @Override
     public synchronized Image getImage(int id) {
         for (Image image : images) {
             if (image.getId() == id) {
-                return image;
+                return copy(image);
             }
         }
         throw new NoSuchElementException(String.valueOf(id));
@@ -69,12 +73,15 @@ class FileDatabase implements Database {
     public synchronized Collection<Image> listImages(Set<String> tags) {
         return images.stream()
                 .filter(image -> image.getTags().containsAll(tags))
+                .map(FileDatabase::copy)
                 .collect(Collectors.toSet());
     }
 
     @Override
     public synchronized Collection<Image> listImages() {
-        return new HashSet<>(images);
+        return images.stream()
+                .map(FileDatabase::copy)
+                .collect(Collectors.toSet());
     }
 
     @Override

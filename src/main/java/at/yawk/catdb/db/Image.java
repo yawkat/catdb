@@ -22,6 +22,18 @@ public class Image {
         score = ratings.values().stream().mapToInt(i -> i).sum();
     }
 
+    @SuppressWarnings("CloneDoesntCallSuperClone")
+    @Override
+    public Image clone() {
+        Image image = new Image();
+        image.setId(getId());
+        image.setUrl(getUrl());
+        image.setTags(new HashSet<>(getTags()));
+        image.setRatings(new HashMap<>(getRatings()));
+        image.setScore(getScore());
+        return image;
+    }
+
     @Override
     public String toString() {
         return "#" + getId() + ": " + getUrl() +
