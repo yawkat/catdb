@@ -79,7 +79,7 @@ public class IRCBot implements Listener {
                 } catch (IOException | IrcException e) {
                     log.error("Error during bot processing", e);
                 }
-            }, "IRC bot thread #" + (i + 1)).start();
+            }, "Bot thread #" + (i + 1)).start();
             bots.add(bot);
         }
         executor = new ThreadPoolExecutor(

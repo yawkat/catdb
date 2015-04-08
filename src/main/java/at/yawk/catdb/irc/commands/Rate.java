@@ -1,7 +1,10 @@
-package at.yawk.catdb.irc;
+package at.yawk.catdb.irc.commands;
 
 import at.yawk.catdb.db.Database;
 import at.yawk.catdb.db.Image;
+import at.yawk.catdb.irc.CommandHandler;
+import at.yawk.catdb.irc.Permission;
+import at.yawk.catdb.irc.Request;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 

@@ -143,7 +143,7 @@ class CommandManager {
 
         @Override
         public ChannelData getData() {
-            return null;
+            return data;
         }
     }
 }

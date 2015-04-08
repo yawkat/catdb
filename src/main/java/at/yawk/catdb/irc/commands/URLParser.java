@@ -1,4 +1,4 @@
-package at.yawk.catdb.irc;
+package at.yawk.catdb.irc.commands;
 
 import java.net.MalformedURLException;
 import java.net.URL;
