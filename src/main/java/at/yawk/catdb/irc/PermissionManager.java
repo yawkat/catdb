@@ -12,11 +12,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 import javax.annotation.PostConstruct;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 /**
  * @author yawkat
  */
+@Slf4j
 @Component
 public class PermissionManager {
     private static final String DEFAULT_USER = "";
@@ -46,6 +48,14 @@ public class PermissionManager {
     }
 
     public boolean hasPermission(String user, String permission) {
+        boolean accept = hasPermission0(user, permission);
+        if (!accept) {
+            log.debug("{} was declined permission {}", user, permission);
+        }
+        return accept;
+    }
+
+    private boolean hasPermission0(String user, String permission) {
         for (Pattern pattern : permissions.get(user)) {
             if (pattern.matcher(permission).matches()) {
                 return true;
