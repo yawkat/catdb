@@ -1,10 +1,10 @@
 package at.yawk.catdb.irc;
 
 import com.google.common.eventbus.Subscribe;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.pircbotx.PircBotX;
@@ -20,7 +20,7 @@ import org.springframework.stereotype.Component;
 @Component
 @Slf4j
 class CommandManager {
-    final Map<Pattern, Handler> requestHandlers = new HashMap<>();
+    final List<Handler> requestHandlers = new ArrayList<>();
 
     private final Map<String, ChannelData> channelDataMap = new HashMap<>();
 
@@ -94,14 +94,10 @@ class CommandManager {
     public void handleCommand(Request request) {
         log.info("Received command {}", request);
 
-        for (Map.Entry<Pattern, Handler> entry : requestHandlers.entrySet()) {
-            log.info("Attempting match with {}", entry.getKey());
-            Matcher matcher = entry.getKey().matcher(request.getCommand());
-            if (matcher.matches()) {
-                Request subRequest = request.withMatchResult(matcher);
-                if (entry.getValue().handle(subRequest)) {
-                    break;
-                }
+        for (Handler handler : requestHandlers) {
+            log.info("Attempting match with {}", handler);
+            if (handler.handle(request)) {
+                break;
             }
         }
     }

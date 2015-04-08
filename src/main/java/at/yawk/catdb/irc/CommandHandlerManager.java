@@ -5,9 +5,12 @@ import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,7 +44,21 @@ class CommandHandlerManager {
                         continue;
                     }
                     Class<?>[] parameterTypes = method.getParameterTypes();
+                    List<Pattern> patterns = Arrays.stream(commandHandlers)
+                            .map(h -> Pattern.compile(h.value()))
+                            .collect(Collectors.toList());
                     CommandManager.Handler handler = req -> {
+                        Matcher matcher = null;
+                        for (Pattern pattern : patterns) {
+                            matcher = pattern.matcher(req.getCommand());
+                            if (matcher.matches()) {
+                                break; // found match
+                            }
+                            matcher = null;
+                        }
+                        if (matcher == null) {
+                            return false;
+                        }
                         for (Permission permission : permissions) {
                             if (!permissionManager.hasPermission(req.getSender(), permission.value())) {
                                 return false;
@@ -70,10 +87,7 @@ class CommandHandlerManager {
                         }
                         return true;
                     };
-                    for (CommandHandler commandHandler : commandHandlers) {
-                        log.info("Registering {} on {}", method, commandHandler.value());
-                        commandManager.requestHandlers.put(Pattern.compile(commandHandler.value()), handler);
-                    }
+                    commandManager.requestHandlers.add(handler);
                 }
             }
         }
