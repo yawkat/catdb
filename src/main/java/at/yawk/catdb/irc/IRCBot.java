@@ -2,6 +2,11 @@ package at.yawk.catdb.irc;
 
 import com.google.common.eventbus.EventBus;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -26,35 +31,52 @@ import org.springframework.stereotype.Component;
 public class IRCBot implements Listener {
     @Autowired EventBus bus;
 
-    private ExtBot bot;
+    private List<ExtBot> bots = new ArrayList<>();
     private Executor executor;
+    private Config config;
+
+    @PostConstruct
+    private void loadConfig() {
+        Path configPath = Paths.get("config.yml");
+        at.yawk.config.Configuration configuration = at.yawk.config.Configuration.create();
+        if (Files.exists(configPath)) {
+            config = configuration.load(Config.class, configPath);
+        } else {
+            config = new Config();
+            configuration.save(config, configPath);
+        }
+    }
 
     @PostConstruct
     private void launch() {
-        bot = new ExtBot(
-                new Configuration.Builder<>()
-                        .setServer("irc.spi.gt", 6697)
-                        .setAutoReconnect(false)
-                        .setName("katdb")
-                        .setRealName("katdb")
-                        .setLogin("kitty")
-                        .setAutoNickChange(true)
-                        .addAutoJoinChannel("#cricket")
-                        .addAutoJoinChannel("#thinkofcat")
-                        .setSocketFactory(SSLSocketFactory.getDefault())
-                        .buildConfiguration()
-        );
-        bot.getConfiguration().getListenerManager().addListener(this);
-        log.info("Launching bot thread");
-        new Thread(() -> {
-            try {
-                log.info("Starting bot.");
-                bot.startBot();
-                log.info("Bot shut down.");
-            } catch (IOException | IrcException e) {
-                log.error("Error during bot processing", e);
-            }
-        }, "IRC bot thread").start();
+        for (int i = 0; i < config.getServers().size(); i++) {
+            Config.Server server = config.getServers().get(i);
+            Configuration.Builder<PircBotX> configBuilder = new Configuration.Builder<>();
+            server.getChannels().forEach(configBuilder::addAutoJoinChannel);
+            ExtBot bot = new ExtBot(
+                    configBuilder
+                            .setServer(server.getHost(), server.getPort())
+                            .setAutoReconnect(false)
+                            .setName(server.getNick())
+                            .setRealName(server.getNick())
+                            .setLogin(server.getLogin())
+                            .setAutoNickChange(true)
+                            .setSocketFactory(SSLSocketFactory.getDefault())
+                            .buildConfiguration()
+            );
+            bot.getConfiguration().getListenerManager().addListener(this);
+            log.info("Launching bot thread {}", bot);
+            new Thread(() -> {
+                try {
+                    log.info("Starting bot {}.", bot);
+                    bot.startBot();
+                    log.info("Bot {} shut down.", bot);
+                } catch (IOException | IrcException e) {
+                    log.error("Error during bot processing", e);
+                }
+            }, "IRC bot thread #" + (i + 1)).start();
+            bots.add(bot);
+        }
         executor = new ThreadPoolExecutor(
                 0, Runtime.getRuntime().availableProcessors() * 2,
                 10, TimeUnit.SECONDS,
@@ -64,9 +86,11 @@ public class IRCBot implements Listener {
 
     @PreDestroy
     private void stop() {
-        log.info("Interrupting bot");
-        bot.stopBotReconnect();
-        bot.shutdown();
+        for (ExtBot bot : bots) {
+            log.info("Interrupting bot {}", bot);
+            bot.stopBotReconnect();
+            bot.shutdown();
+        }
     }
 
     @Override
