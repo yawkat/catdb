@@ -30,7 +30,7 @@ class Edit {
     @Permission("add")
     @CommandHandler("(save|store|add) \\^(( \\w+)*)")
     String storeLastUrl(Request request, String ignored, String tags) throws MalformedURLException {
-        return store(tags, request.getChannelData().getLastSeenUrl());
+        return store(tags, request.getChannel().getData().getLastSeenUrl());
     }
 
     @NotNull

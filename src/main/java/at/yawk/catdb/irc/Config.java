@@ -17,6 +17,8 @@ public class Config {
         String host = "irc.spi.gt";
         @DescribedAs("Server port")
         int port = 6697;
+        @DescribedAs("Server password")
+        String password = null;
         @DescribedAs("Username (nick)")
         String nick = "katdb";
         @DescribedAs("Display full name")

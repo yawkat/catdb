@@ -15,13 +15,13 @@ class Rate {
     @Permission("rate")
     @CommandHandler("\\^++")
     public void incrementLast(Request request) {
-        modify(request.getChannelData().getLastShownImage(), +1);
+        modify(request.getChannel().getData().getLastShownImage(), +1);
     }
 
     @Permission("rate")
     @CommandHandler("\\^--")
     public void decrementLast(Request request) {
-        modify(request.getChannelData().getLastShownImage(), -1);
+        modify(request.getChannel().getData().getLastShownImage(), -1);
     }
 
     @Permission("rate")

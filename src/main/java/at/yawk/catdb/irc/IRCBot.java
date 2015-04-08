@@ -61,8 +61,8 @@ public class IRCBot implements Listener {
                             .setName(server.getNick())
                             .setRealName(server.getNick())
                             .setLogin(server.getLogin())
+                            .setServerPassword(server.getPassword())
                             .setAutoNickChange(true)
-                            .setSocketFactory(SSLSocketFactory.getDefault())
                             .buildConfiguration(),
                     server
             );
