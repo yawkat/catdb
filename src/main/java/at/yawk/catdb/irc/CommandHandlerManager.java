@@ -59,6 +59,7 @@ class CommandHandlerManager {
                         if (matcher == null) {
                             return false;
                         }
+                        req = req.withMatchResult(matcher);
                         for (Permission permission : permissions) {
                             if (!permissionManager.hasPermission(req.getSender(), permission.value())) {
                                 return false;

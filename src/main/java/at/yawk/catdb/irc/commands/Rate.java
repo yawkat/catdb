@@ -18,30 +18,30 @@ class Rate {
     @Permission("rate")
     @CommandHandler("\\^\\+\\+")
     public void incrementLast(Request request) {
-        modify(request.getChannel().getData().getLastShownImage(), +1);
+        rate(request, request.getChannel().getData().getLastShownImage(), +1);
     }
 
     @Permission("rate")
     @CommandHandler("\\^--")
     public void decrementLast(Request request) {
-        modify(request.getChannel().getData().getLastShownImage(), -1);
+        rate(request, request.getChannel().getData().getLastShownImage(), -1);
     }
 
     @Permission("rate")
     @CommandHandler("(\\d+)\\+\\+")
     public void increment(Request request, String id) {
-        modify(database.getImage(Integer.parseInt(id)), +1);
+        rate(request, database.getImage(Integer.parseInt(id)), +1);
     }
 
     @Permission("rate")
     @CommandHandler("(\\d+)--")
     public void decrement(Request request, String id) {
-        modify(database.getImage(Integer.parseInt(id)), -1);
+        rate(request, database.getImage(Integer.parseInt(id)), -1);
     }
 
-    private void modify(Image image, int delta) {
-        // todo: store who rated?
-        image.setScore(image.getScore() + delta);
+    private void rate(Request request, Image image, int delta) {
+        image.getRatings().put(request.getSender(), delta);
+        image.recalculateScore();
         database.storeImage(image);
     }
 }
