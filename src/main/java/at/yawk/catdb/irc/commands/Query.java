@@ -9,6 +9,8 @@ import java.util.Collection;
 import java.util.NoSuchElementException;
 import java.util.concurrent.ThreadLocalRandom;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 /**
@@ -32,6 +34,7 @@ class Query {
 
     @Permission("query.tag")
     @CommandHandler("(show )?(( ?\\w)+)")
+    @Order(Ordered.LOWEST_PRECEDENCE)
     Image queryTags(String ignored, String tags) {
         Collection<Image> candidates = database.listImages(Sets.newHashSet(Edit.SPACE_SPLITTER.split(tags)));
         return select(candidates);

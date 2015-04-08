@@ -4,16 +4,15 @@ import at.yawk.catdb.db.Image;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import javafx.util.Pair;
 import javax.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 /**
@@ -28,26 +27,43 @@ class CommandHandlerManager {
 
     @PostConstruct
     private void register() {
+        List<Pair<Object, Method>> handlerMethods = new ArrayList<>();
         for (Object bean : beans) {
             for (Method method : bean.getClass().getDeclaredMethods()) {
-                CommandHandler[] commandHandlers = method.getAnnotationsByType(CommandHandler.class);
-                if (commandHandlers.length > 0) {
-                    Permission[] permissions = method.getAnnotationsByType(Permission.class);
-                    method.setAccessible(true);
-                    MethodHandle handle;
-                    try {
-                        handle = MethodHandles.lookup()
-                                .unreflect(method)
-                                .bindTo(bean);
-                    } catch (IllegalAccessException e) {
-                        log.error("Failed to bind command handler", e);
-                        continue;
-                    }
-                    Class<?>[] parameterTypes = method.getParameterTypes();
-                    List<Pattern> patterns = Arrays.stream(commandHandlers)
-                            .map(h -> Pattern.compile(h.value()))
-                            .collect(Collectors.toList());
-                    CommandManager.Handler handler = req -> {
+                handlerMethods.add(new Pair<>(bean, method));
+            }
+        }
+
+        handlerMethods.sort(Comparator.comparingInt(pair -> {
+            Order order = pair.getValue().getAnnotation(Order.class);
+            // default to 0 instead of Ordered.LOWEST_PRECEDENCE since we may need lower precedence than default
+            return order == null ? 0 : order.value();
+        }));
+
+        for (Pair<Object, Method> handlerMethod : handlerMethods) {
+            Object bean = handlerMethod.getKey();
+            Method method = handlerMethod.getValue();
+
+            CommandHandler[] commandHandlers = method.getAnnotationsByType(CommandHandler.class);
+            if (commandHandlers.length > 0) {
+                Permission[] permissions = method.getAnnotationsByType(Permission.class);
+                method.setAccessible(true);
+                MethodHandle handle;
+                try {
+                    handle = MethodHandles.lookup()
+                            .unreflect(method)
+                            .bindTo(bean);
+                } catch (IllegalAccessException e) {
+                    log.error("Failed to bind command handler", e);
+                    continue;
+                }
+                Class<?>[] parameterTypes = method.getParameterTypes();
+                List<Pattern> patterns = Arrays.stream(commandHandlers)
+                        .map(h -> Pattern.compile(h.value()))
+                        .collect(Collectors.toList());
+                CommandManager.Handler handler = new CommandManager.Handler() {
+                    @Override
+                    public boolean handle(Request req) {
                         Matcher matcher = null;
                         for (Pattern pattern : patterns) {
                             matcher = pattern.matcher(req.getCommand());
@@ -87,9 +103,25 @@ class CommandHandlerManager {
                             req.getChannel().send(e.getClass().getName() + ": " + e.getMessage());
                         }
                         return true;
-                    };
-                    commandManager.requestHandlers.add(handler);
-                }
+                    }
+
+                    @Override
+                    public String toString() {
+                        StringBuilder sb = new StringBuilder();
+                        sb.append(method.getDeclaringClass().getSimpleName())
+                                .append(".")
+                                .append(method.getName())
+                                .append(" <");
+                        for (CommandHandler handler : commandHandlers) {
+                            sb.append(" '")
+                                    .append(handler.value())
+                                    .append('\'');
+                        }
+                        return sb.toString();
+                    }
+                };
+                log.info("Registering handler {}", handler);
+                commandManager.requestHandlers.add(handler);
             }
         }
     }
