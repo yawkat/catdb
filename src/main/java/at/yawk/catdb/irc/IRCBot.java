@@ -54,6 +54,9 @@ public class IRCBot implements Listener {
             Config.Server server = config.getServers().get(i);
             Configuration.Builder<PircBotX> configBuilder = new Configuration.Builder<>();
             server.getChannels().forEach(configBuilder::addAutoJoinChannel);
+            if (server.isSsl()) {
+                configBuilder.setSocketFactory(SSLSocketFactory.getDefault());
+            }
             ExtBot bot = new ExtBot(
                     configBuilder
                             .setServer(server.getHost(), server.getPort())
