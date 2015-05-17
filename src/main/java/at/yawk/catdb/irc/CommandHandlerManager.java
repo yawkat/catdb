@@ -1,5 +1,6 @@
 package at.yawk.catdb.irc;
 
+import at.yawk.catdb.Pair;
 import at.yawk.catdb.db.Image;
 import com.google.common.collect.ImmutableMap;
 import java.lang.invoke.MethodHandle;
@@ -9,7 +10,6 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import javafx.util.Pair;
 import javax.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
