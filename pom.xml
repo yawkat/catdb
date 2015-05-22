@@ -7,8 +7,20 @@
     <groupId>at.yawk.catdb</groupId>
     <artifactId>catdb</artifactId>
     <version>1.0-SNAPSHOT</version>
+    <packaging>war</packaging>
 
     <dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-parent</artifactId>
+            <version>1.2.3.RELEASE</version>
+            <type>pom</type>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+            <version>1.2.3.RELEASE</version>
+        </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter</artifactId>
@@ -16,13 +28,9 @@
         </dependency>
         <dependency>
             <groupId>org.springframework</groupId>
-            <artifactId>spring-beans</artifactId>
-            <version>4.1.4.RELEASE</version>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-context</artifactId>
-            <version>4.1.4.RELEASE</version>
+            <artifactId>spring-framework-bom</artifactId>
+            <version>4.1.6.RELEASE</version>
+            <type>pom</type>
         </dependency>
         <dependency>
             <groupId>com.github.jknack</groupId>
@@ -85,7 +93,7 @@
                     <target>1.8</target>
                 </configuration>
             </plugin>
-            <plugin>
+            <!--<plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
                 <version>2.1</version>
@@ -106,6 +114,37 @@
                             <mainClass>at.yawk.catdb.Main</mainClass>
                         </transformer>
                     </transformers>
+                </configuration>
+            </plugin>-->
+            <plugin>
+                <artifactId>maven-war-plugin</artifactId>
+                <version>2.3</version>
+
+                <configuration>
+                    <failOnMissingWebXml>false</failOnMissingWebXml>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <version>1.2.3.RELEASE</version>
+
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>repackage</goal>
+                        </goals>
+                    </execution>
+                </executions>
+
+                <configuration>
+                    <arguments>
+                        <argument>--modulePath=${project.basedir}/../modules/</argument>
+                        <argument>--upgradePath=${project.basedir}/../upgrades/</argument>
+                    </arguments>
+                    <folders>
+                        <folder>${project.build.directory}/${project.build.finalName}</folder>
+                    </folders>
                 </configuration>
             </plugin>
         </plugins>
