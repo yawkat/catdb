@@ -71,6 +71,9 @@ class FileDatabase implements Database {
 
     @Override
     public synchronized Collection<Image> listImages(Set<String> tags) {
+        if (tags.isEmpty()) {
+            return listImages();
+        }
         return images.stream()
                 .filter(image -> image.getTags().containsAll(tags))
                 .map(FileDatabase::copy)

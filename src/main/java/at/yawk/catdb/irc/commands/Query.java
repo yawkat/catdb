@@ -45,20 +45,10 @@ class Query {
             throw new NoSuchElementException("No results found");
         }
 
-        double[] accumulatedProbabilities = new double[candidates.size()];
-        double totalProbability = 0;
-        int i = 0;
-        for (Image image : candidates) {
-            double probability = 0.9 / (1 + Math.exp(-1 * 0.9 * image.getScore()) * (0.9 / 0.2 - 1)) + 0.1;
-            totalProbability += probability;
-            accumulatedProbabilities[i++] = totalProbability;
-        }
-        double selection = ThreadLocalRandom.current().nextDouble() * totalProbability;
-
-        i = 0;
-        for (Image image : candidates) {
-            if (accumulatedProbabilities[i++] > selection) {
-                return image;
+        int i = ThreadLocalRandom.current().nextInt(candidates.size());
+        for (Image candidate : candidates) {
+            if (i-- == 0) {
+                return candidate;
             }
         }
         throw new AssertionError();

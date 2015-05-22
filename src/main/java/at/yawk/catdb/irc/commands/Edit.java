@@ -41,7 +41,6 @@ class Edit {
         Image image = new Image();
         image.setUrl(parsedUrl);
         image.setTags(Sets.newHashSet(SPACE_SPLITTER.split(tags)));
-        image.setScore(0);
         database.storeImage(image);
 
         // id populated by database
