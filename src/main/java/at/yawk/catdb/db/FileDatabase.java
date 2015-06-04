@@ -1,6 +1,6 @@
 package at.yawk.catdb.db;
 
-import com.google.gson.Gson;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
@@ -12,6 +12,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
@@ -20,8 +21,7 @@ import org.springframework.stereotype.Component;
 @Component
 @Slf4j
 class FileDatabase implements Database {
-    private static final Gson GSON = new Gson();
-
+    @Autowired ObjectMapper objectMapper;
     private Path location = Paths.get("images.json").toAbsolutePath();
     private List<Image> images;
 
@@ -33,7 +33,7 @@ class FileDatabase implements Database {
         }
 
         try (Reader in = Files.newBufferedReader(location)) {
-            images = new ArrayList<>(Arrays.asList(GSON.fromJson(in, Image[].class)));
+            images = new ArrayList<>(Arrays.asList(objectMapper.readValue(in, Image[].class)));
         }
     }
 
@@ -43,7 +43,7 @@ class FileDatabase implements Database {
         );
         try {
             try (Writer out = Files.newBufferedWriter(tempLoc)) {
-                GSON.toJson(images, out);
+                objectMapper.writeValue(out, images);
             }
             Files.move(tempLoc, location, StandardCopyOption.REPLACE_EXISTING);
         } catch (IOException e) {
