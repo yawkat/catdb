@@ -7,6 +7,8 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.scheduling.annotation.EnableAsync;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 /**
  * @author yawkat
@@ -19,6 +21,8 @@ import org.springframework.context.annotation.Configuration;
 })
 @SpringBootApplication
 @EnableAutoConfiguration
+@EnableAsync
+@EnableScheduling
 public class Main {
     public static void main(String[] args) throws InterruptedException {
         SpringApplication.run(Main.class, args);

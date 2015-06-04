@@ -112,7 +112,7 @@ class FileDatabase implements Database {
     }
 
     @Override
-    public void deleteImage(Image image) {
+    public synchronized void deleteImage(Image image) {
         images.remove(image);
     }
 }
