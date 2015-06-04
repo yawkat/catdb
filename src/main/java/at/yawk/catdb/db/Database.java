@@ -17,4 +17,6 @@ public interface Database {
     Collection<Image> listImages();
 
     void storeImage(Image image);
+
+    void deleteImage(Image image);
 }

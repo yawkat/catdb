@@ -110,4 +110,9 @@ class FileDatabase implements Database {
         }
         save();
     }
+
+    @Override
+    public void deleteImage(Image image) {
+        images.remove(image);
+    }
 }

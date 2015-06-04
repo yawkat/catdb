@@ -17,22 +17,22 @@ import org.springframework.stereotype.Component;
  * @author yawkat
  */
 @Component
-class Edit {
+class Add {
     static final Splitter SPACE_SPLITTER = Splitter.on(' ').omitEmptyStrings();
 
     @Autowired Database database;
 
     @Permission("add")
-    @CommandHandler("(save|store|add) (\\S+)(( \\w+)*)")
-    String store(String ignored, String url, String tags) throws MalformedURLException {
+    @CommandHandler("(?:save|store|add) (\\S+)(( \\w+)*)")
+    String store(String url, String tags) throws MalformedURLException {
         URL parsedUrl = URLParser.parse(url);
 
         return store(tags, parsedUrl);
     }
 
     @Permission("add")
-    @CommandHandler("(save|store|add) \\^(( \\w+)*)")
-    String storeLastUrl(Request request, String ignored, String tags) throws MalformedURLException {
+    @CommandHandler("(?:save|store|add) \\^(( \\w+)*)")
+    String storeLastUrl(Request request, String tags) throws MalformedURLException {
         return store(tags, request.getChannel().getData().getLastSeenUrl());
     }
 
