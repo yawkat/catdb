@@ -1,0 +1,47 @@
+<!DOCTYPE html SYSTEM "http://www.thymeleaf.org/dtd/xhtml1-strict-thymeleaf-spring4-4.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org">
+<head th:include="template :: head">
+</head>
+<body>
+<div class="container">
+    <script type="text/javascript">
+    //<![CDATA[
+        $(function() {
+            $("#cat-select").submit(function(evt) {
+                evt.preventDefault();
+                var items = [];
+                var tagStrings = $("#tags").val().split(" ");
+                for (var i = 0; i < tagStrings.length; i++) {
+                    items.push({ name: "tag", value: tagStrings[i] });
+                }
+                window.location = "/images.html?" + $.param(items);
+            });
+        });
+    //]]>
+    </script>
+    <form id="cat-select">
+        <div class="input-group">
+            <input id="tags" class="form-control" type="text" placeholder="Tags" autofocus="autofocus" th:value="${#strings.listJoin(tags, ' ')}"/>
+            <span class="input-group-btn">
+                <input class="btn btn-default" type="submit" tabindex="-1" value="Go"/>
+            </span>
+        </div>
+    </form>
+    <table class="table">
+        <tr>
+            <th width="10%">#</th>
+            <th width="20%">Tags</th>
+            <th width="70%">URL</th>
+        </tr>
+        <tr th:each="cat : ${cats}">
+            <td th:text="${cat.id}">2</td>
+            <td>
+                <a th:each="tag : ${cat.tags}" th:text="${tag}" th:href="'/images.html?tag=' + ${tag}">kitty</a>
+            </td>
+            <td><a href="http://yawk.at" th:href="${cat.url}" th:text="${cat.url}" target="_blank">http://yawk.at</a></td>
+        </tr>
+    </table>
+</div>
+</body>
+</html>

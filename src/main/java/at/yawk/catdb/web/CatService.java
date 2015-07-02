@@ -6,10 +6,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * @author yawkat
@@ -18,12 +15,12 @@ import org.springframework.web.bind.annotation.RestController;
 public class CatService {
     @Autowired Database database;
 
-    @RequestMapping("/images")
+    @RequestMapping(value = "/images", method = RequestMethod.GET)
     public Collection<Image> query(@RequestParam(value = "tag", required = false) Set<String> tags) {
         return database.listImages(tags == null ? Collections.emptySet() : tags);
     }
 
-    @RequestMapping("/images/{id}")
+    @RequestMapping(value = "/images/{id}", method = RequestMethod.GET)
     public Image query(@PathVariable int id) {
         return database.getImage(id);
     }
