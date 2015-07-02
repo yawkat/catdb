@@ -30,7 +30,9 @@ public class VisualService {
 
     @RequestMapping(value = "/images.html", method = RequestMethod.GET)
     public ModelAndView query(@RequestParam(value = "tag", required = false) Set<String> tags) {
-        Collection<Image> images = database.listImages(tags == null ? Collections.emptySet() : tags);
+        if (tags == null) { tags = Collections.emptySet(); }
+
+        Collection<Image> images = database.listImages(tags);
         return new ModelAndView("images")
                 .addObject("tags", tags)
                 .addObject("cats", images.stream()
