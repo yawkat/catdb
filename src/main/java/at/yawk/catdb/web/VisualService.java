@@ -2,11 +2,13 @@ package at.yawk.catdb.web;
 
 import at.yawk.catdb.db.Database;
 import at.yawk.catdb.db.Image;
+import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Set;
 import java.util.stream.Collectors;
+import javax.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -22,8 +24,8 @@ public class VisualService {
     @Autowired Database database;
 
     @RequestMapping(value = "/", method = RequestMethod.GET)
-    public String index() {
-        return "index";
+    public void index(HttpServletResponse response) throws IOException {
+        response.sendRedirect("/images.html");
     }
 
     @RequestMapping(value = "/images.html", method = RequestMethod.GET)
