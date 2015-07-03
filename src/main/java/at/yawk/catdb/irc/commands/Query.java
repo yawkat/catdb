@@ -21,19 +21,19 @@ class Query {
     @Autowired Database database;
 
     @Permission("query.id")
-    @CommandHandler("(show )?(\\d+)")
-    Image getId(String ignored, String id) {
+    @CommandHandler("(?:show |cat )?(\\d+)")
+    Image getId(String id) {
         return database.getImage(Integer.parseInt(id));
     }
 
     @Permission("query.any")
-    @CommandHandler("show")
+    @CommandHandler("(?:show|cat)")
     Image queryAll() {
         return select(database.listImages());
     }
 
     @Permission("query.tag")
-    @CommandHandler("(show )?(( ?\\w)+)")
+    @CommandHandler("(?:show |cat )?(( ?\\w)+)")
     @Order(Ordered.LOWEST_PRECEDENCE)
     Image queryTags(String ignored, String tags) {
         Collection<Image> candidates = database.listImages(Sets.newHashSet(Add.SPACE_SPLITTER.split(tags)));
