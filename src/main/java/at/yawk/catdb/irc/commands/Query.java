@@ -35,7 +35,7 @@ class Query {
     @Permission("query.tag")
     @CommandHandler("(?:show |cat )?(( ?\\w)+)")
     @Order(Ordered.LOWEST_PRECEDENCE)
-    Image queryTags(String ignored, String tags) {
+    Image queryTags(String tags) {
         Collection<Image> candidates = database.listImages(Sets.newHashSet(Add.SPACE_SPLITTER.split(tags)));
         return select(candidates);
     }
