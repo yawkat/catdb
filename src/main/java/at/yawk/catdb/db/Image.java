@@ -4,13 +4,11 @@ import java.net.URL;
 import java.util.HashSet;
 import java.util.Set;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 
 /**
  * @author yawkat
  */
 @Data
-@EqualsAndHashCode(of = "id")
 public class Image {
     private int id;
     private URL url;
