@@ -10,7 +10,7 @@ import java.util.regex.Pattern;
 /**
  * @author yawkat
  */
-class URLParser {
+public class URLParser {
     private static final Pattern PATTERN = Pattern.compile(
             "(https?://)?(([0-9]{1,3}\\.){3}[0-9]{1,3}|\\w+\\.\\w{2,8})(\\S+[^\\s\\.\"'])?");
 

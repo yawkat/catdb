@@ -1,6 +1,8 @@
 package at.yawk.catdb.irc;
 
+import at.yawk.catdb.irc.commands.URLParser;
 import com.google.common.eventbus.Subscribe;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -44,7 +46,16 @@ class CommandManager {
         );
 
         // handle
-        handleChannelMessage(event, channel);
+        if (!handleChannelMessage(event, channel)) {
+            // not handled, look for URLs
+            List<URL> urls = URLParser.find(event.getMessage());
+            if (urls.size() == 1) {
+                channel.getData().setLastSeenUrl(urls.get(0));
+            } else if (!urls.isEmpty()) {
+                // explicitly remove last url if we got multiple
+                channel.getData().setLastSeenUrl(null);
+            }
+        }
     }
 
     @Subscribe
