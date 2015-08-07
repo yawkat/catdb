@@ -93,6 +93,7 @@ class FileDatabase implements Database {
         int maxId = 0;
         for (int i = 0; i < images.size(); i++) {
             Image other = images.get(i);
+            if (other.getUrl().equals(image.getUrl())) { throw new DuplicateImageException(other.getId()); }
             maxId = Math.max(maxId, other.getId());
             if (other.getId() == image.getId()) {
                 if (other.equals(image)) {
